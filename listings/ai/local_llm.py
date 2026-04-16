@@ -1,31 +1,51 @@
 """
-Local HuggingFace LLM integration for Harbor
-FOR GRADING: Part 2B - Local LLM Integration
+Local description generation entrypoint for Harbor.
+
+Compatibility note:
+- The view currently imports `generate_listing_description` from this module.
+- We keep that API stable, but internally route to the lightweight
+  semantic retrieval engine (no LLM, no transformers model loading).
 """
+
+from __future__ import annotations
+
 import logging
-import bleach
 import re
+from typing import Dict, Optional
+
+import bleach
+
+from .description_retriever import DescriptionRetriever
+
 
 logger = logging.getLogger(__name__)
 
 # Safety constants
 MAX_INPUT_LENGTH = 500
 BLOCKED_PATTERNS = [
-    r'<script.*?>',
-    r'DROP\s+TABLE',
-    r'eval\s*\(',
+    r"<script.*?>",
+    r"DROP\s+TABLE",
+    r"eval\s*\(",
 ]
+
+DEFAULT_UNSAFE_FALLBACK = (
+    "{category} listing available at ${price}. Contact for details and availability."
+)
 
 
 def sanitize_input(text: str, max_length: int = MAX_INPUT_LENGTH) -> str:
-    """Clean user input"""
+    """
+    Normalize and trim user input before retrieval.
+    """
     clean = bleach.clean(text, strip=True)
-    clean = ' '.join(clean.split())
+    clean = " ".join(clean.split())
     return clean[:max_length].strip()
 
 
 def is_safe_input(text: str) -> bool:
-    """Check for malicious patterns"""
+    """
+    Block obvious malicious patterns before processing.
+    """
     for pattern in BLOCKED_PATTERNS:
         if re.search(pattern, text, re.IGNORECASE):
             return False
@@ -33,176 +53,124 @@ def is_safe_input(text: str) -> bool:
 
 
 def validate_output(text: str) -> bool:
-    """Validate LLM output quality"""
-    if len(text) < 50 or len(text) > 1000:
+    """
+    Ensure generated description is usable for listing creation.
+    """
+    if len(text) < 60 or len(text) > 1000:
         return False
-    sentences = [s.strip() for s in text.split('.') if s.strip()]
+    sentences = [segment.strip() for segment in text.split(".") if segment.strip()]
     return len(sentences) >= 2
 
 
-class HarborLocalLLM:
+_retriever: Optional[DescriptionRetriever] = None
+
+
+def get_description_retriever() -> DescriptionRetriever:
     """
-    Local HuggingFace model wrapper
-    FOR GRADING: This class loads and uses a local LLM
+    Lazy-init singleton retriever for low per-request latency.
     """
-    
-    def __init__(self, model_name="google/flan-t5-small"):
-        """
-        Initialize with HuggingFace model
-        Model weights will be downloaded automatically on first use
-        """
-        self.model_name = model_name
-        self.model = None
-        self.tokenizer = None
-        self._loaded = False
-        logger.info(f"Initialized LocalLLM with model: {model_name}")
-    
-    def load_model(self):
-        """
-        Lazy load the model (only when first needed)
-        FOR GRADING: This demonstrates transformers library usage
-        """
-        if self._loaded:
-            return
-        
-        try:
-            from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
-            
-            logger.info(f"Loading HuggingFace model: {self.model_name}")
-            print(f"⏳ Downloading {self.model_name} weights (first time only)...")
-            
-            # Download and load tokenizer
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-            
-            # Download and load model
-            self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
-            
-            self._loaded = True
-            print(f"✅ Model loaded successfully!")
-            logger.info("Model loaded successfully")
-            
-        except Exception as e:
-            logger.error(f"Failed to load model: {e}")
-            raise RuntimeError(f"Could not load HuggingFace model: {e}")
-    
-    def generate(self, prompt: str, max_new_tokens: int = 150) -> str:
-        """
-        Generate text using the local model
-        FOR GRADING: Core text generation function
-        """
-        # Ensure model is loaded
-        self.load_model()
-        
-        try:
-            # Tokenize input
-            inputs = self.tokenizer(
-                prompt,
-                return_tensors="pt",
-                max_length=512,
-                truncation=True
-            )
-            
-            # Generate output
-            outputs = self.model.generate(
-                inputs.input_ids,
-                max_new_tokens=max_new_tokens,
-                num_beams=4,
-                temperature=0.7,
-                do_sample=False,
-                early_stopping=True
-            )
-            
-            # Decode output
-            generated_text = self.tokenizer.decode(
-                outputs[0],
-                skip_special_tokens=True
-            )
-            
-            return generated_text.strip()
-            
-        except Exception as e:
-            logger.error(f"Generation failed: {e}")
-            raise
+    global _retriever
+    if _retriever is None:
+        _retriever = DescriptionRetriever(confidence_threshold=0.10)
+    return _retriever
 
 
-# Global instance (lazy-loaded)
-_local_llm = None
-
-def get_local_llm():
-    """Get or create the global LLM instance"""
-    global _local_llm
-    if _local_llm is None:
-        _local_llm = HarborLocalLLM()
-    return _local_llm
-
-
-def generate_listing_description(title: str, category: str, price: float, basic_info: str) -> dict:
+def _build_retrieval_input(title: str, category: str, price: float, basic_info: str) -> str:
     """
-    Main function to generate listing description using local LLM
-    FOR GRADING: This is the entry point for local LLM integration
-    
+    Build a compact but context-rich query for semantic matching.
+    """
+    try:
+        numeric_price = float(price)
+        price_text = f"${numeric_price:.2f}"
+    except (TypeError, ValueError):
+        price_text = "a fair price"
+    return (
+        f"Title: {title}. "
+        f"Category: {category}. "
+        f"Price: {price_text}. "
+        f"Details: {basic_info}"
+    )
+
+
+def _safe_fallback(category: str, price: float, basic_info: str) -> str:
+    """
+    Deterministic fallback used for unsafe/error cases.
+    """
+    details_preview = basic_info[:120].rstrip() if basic_info else "Flexible details available"
+    try:
+        numeric_price = float(price)
+    except (TypeError, ValueError):
+        numeric_price = 0.0
+    base = DEFAULT_UNSAFE_FALLBACK.format(category=category, price=f"{numeric_price:.2f}")
+    return f"{base} {details_preview}. Message for quick coordination."
+
+
+def generate_listing_description(title: str, category: str, price: float, basic_info: str) -> Dict[str, object]:
+    """
+    Generate a marketplace-ready description using semantic retrieval.
+
     Returns:
-        dict with keys: description, source, success, error
+        dict with keys:
+        - description (str)
+        - source (str)
+        - success (bool)
+        - error (str | None)
+        - confidence_score (float)
     """
-    # Sanitize inputs
+    # Sanitize user-controlled inputs.
     title = sanitize_input(title, 100)
+    category = sanitize_input(category, 80)
     basic_info = sanitize_input(basic_info, 500)
-    
-    # Safety check
+
+    # Safety gate.
     if not is_safe_input(title) or not is_safe_input(basic_info):
         return {
-            'description': f"{category} available. Contact for details!",
-            'source': 'fallback',
-            'success': False,
-            'error': 'Unsafe input detected'
+            "description": _safe_fallback(category=category or "General", price=price or 0.0, basic_info=basic_info),
+            "source": "blocked_input_fallback",
+            "success": False,
+            "error": "Unsafe input detected",
+            "confidence_score": 0.0,
         }
-    
-    # Build prompt
-    prompt = f"""
-    You are an assistant that writes high-quality marketplace listings.
 
-    Write a professional and engaging description based on the information below.
+    retrieval_input = _build_retrieval_input(
+        title=title,
+        category=category or "General",
+        price=price or 0.0,
+        basic_info=basic_info,
+    )
 
-    Title: {title}
-    Category: {category}
-    Price: ${price}
-    Details: {basic_info}
-
-    Requirements:
-    - Write 2–3 complete sentences
-    - Use a friendly and professional tone
-    - Do NOT repeat the input word-for-word
-    - Expand slightly on the details
-    - Make it appealing to potential buyers
-    - Do NOT include labels like 'Title', 'Category', or 'Price' in the output
-
-    Final Description:
-    """
-    
-    # Try to generate with local model
     try:
-        llm = get_local_llm()
-        description = llm.generate(prompt)
-        
-        # Validate output
-        if validate_output(description):
+        retriever = get_description_retriever()
+        result = retriever.generate_description(retrieval_input)
+
+        description = str(result.get("description", "")).strip()
+        if not validate_output(description):
+            logger.warning("Retriever output failed quality validation; applying deterministic fallback")
             return {
-                'description': description,
-                'source': 'local_huggingface',
-                'success': True,
-                'error': None
+                "description": _safe_fallback(
+                    category=category or "General",
+                    price=price or 0.0,
+                    basic_info=basic_info,
+                ),
+                "source": "quality_fallback",
+                "success": True,
+                "error": None,
+                "confidence_score": float(result.get("confidence_score", 0.0)),
             }
-        else:
-            logger.warning("Generated output failed validation")
-            
-    except Exception as e:
-        logger.error(f"LLM generation error: {e}")
-    
-    # Fallback if model fails
-    fallback = f"{category} service available. {basic_info[:100]} Great value at ${price}. Contact for more details!"
-    return {
-        'description': fallback,
-        'source': 'template_fallback',
-        'success': False,
-        'error': 'Model generation failed'
-    }
+
+        return {
+            "description": description,
+            "source": str(result.get("source", "semantic_retrieval")),
+            "success": True,
+            "error": result.get("error"),
+            "confidence_score": float(result.get("confidence_score", 0.0)),
+        }
+    except Exception as exc:
+        logger.exception("Description generation failed")
+        return {
+            "description": _safe_fallback(category=category or "General", price=price or 0.0, basic_info=basic_info),
+            "source": "error_fallback",
+            "success": False,
+            "error": str(exc),
+            "confidence_score": 0.0,
+        }

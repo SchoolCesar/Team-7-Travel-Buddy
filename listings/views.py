@@ -61,7 +61,11 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView
 from .models import Student, Category
-import json, requests, csv
+import csv
+import json
+import logging
+
+import requests
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -70,6 +74,7 @@ from django.views.decorators.http import require_http_methods
 
 from django.contrib import messages
 
+logger = logging.getLogger(__name__)
 
 
 def listing_manual_view(request):
@@ -427,25 +432,14 @@ def signup_view(request):
         form = UserCreationForm()
 
     return render(request, "registration/signup.html", {"form": form})
-# ===== LOCAL LLM INTEGRATION (Part 2B) =====
-
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_http_methods
-from django.http import JsonResponse
+# ===== LOCAL DESCRIPTION ENGINE =====
 from .ai.local_llm import generate_listing_description
 
 @login_required
 @require_http_methods(["GET", "POST"])
 def create_with_local_ai(request):
     """
-    Create listing description using LOCAL HuggingFace model
-    FOR GRADING: Part 2B - Local LLM Integration
-    
-    This view demonstrates:
-    - Loading HuggingFace model via transformers library
-    - Model weights download automatically on first use
-    - Text generation using local LLM
-    - Input sanitization and output validation
+    Create listing description using local semantic retrieval.
     """
     if request.method == 'POST':
         # Get form data
@@ -465,7 +459,7 @@ def create_with_local_ai(request):
             category = Category.objects.get(id=category_id)
             price_float = float(price) if price else 0.0
             
-            # Generate with LOCAL model only
+            # Generate with local semantic retrieval engine.
             result = generate_listing_description(
                 title=title,
                 category=category.name,
@@ -477,8 +471,9 @@ def create_with_local_ai(request):
                 'success': result['success'],
                 'description': result['description'],
                 'source': result['source'],
-                'model': 'google/flan-t5-small (HuggingFace)',
-                'error': result.get('error')
+                'model': 'TF-IDF Semantic Retrieval + Rule Engine (Local)',
+                'confidence_score': result.get('confidence_score', 0.0),
+                'error': result.get('error'),
             })
             
         except Category.DoesNotExist:
@@ -556,4 +551,3 @@ def save_listing(request):
 
     messages.success(request, f'Listing "{listing.title}" posted successfully!')
     return redirect('listing_detail', pk=listing.pk)
-

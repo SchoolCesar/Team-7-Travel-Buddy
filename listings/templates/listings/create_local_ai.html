@@ -496,9 +496,9 @@
 
     <div class="ai-page">
         <div class="ai-hero">
-            <div class="pill">✦ Powered by flan-t5-small</div>
+            <div class="pill">✦ Powered by Local Semantic Retrieval</div>
             <h1>Write your listing<br><span>with AI.</span></h1>
-            <p>Fill in the basics. The local model writes a professional description for you in seconds.</p>
+            <p>Fill in the basics. A local TF-IDF retriever builds a polished description in seconds.</p>
         </div>
 
         <div class="ai-layout">
@@ -558,12 +558,12 @@
                     <!-- Loading state -->
                     <div class="loading-state" id="loading-state">
                         <div class="spinner"></div>
-                        <p>Running local model...</p>
+                        <p>Generating with local retrieval...</p>
                         <ul class="loading-steps">
                             <li id="step-1">Sanitizing input</li>
-                            <li id="step-2">Building prompt</li>
-                            <li id="step-3">flan-t5-small generating</li>
-                            <li id="step-4">Validating output</li>
+                            <li id="step-2">Vectorizing with TF-IDF</li>
+                            <li id="step-3">Retrieving best template</li>
+                            <li id="step-4">Customizing final output</li>
                         </ul>
                     </div>
 
@@ -638,8 +638,8 @@
                 </div>
                 <div class="step-card">
                     <div class="step-num">3</div>
-                    <h4>Local model runs</h4>
-                    <p>flan-t5-small (80M params) on CPU — no cloud, no API cost</p>
+                    <h4>Semantic match runs</h4>
+                    <p>TF-IDF + cosine similarity selects the best rich template locally</p>
                 </div>
                 <div class="step-card">
                     <div class="step-num">4</div>
@@ -717,11 +717,21 @@
 
                     // Source badge
                     const badge = document.getElementById('source-badge');
-                    if (data.source === 'local_huggingface') {
+                    if (data.source === 'semantic_retrieval') {
+                        badge.textContent = '🖥 Local Semantic Match';
+                        badge.className = 'source-badge local';
+                    } else if (data.source === 'dynamic_fallback' || data.source === 'quality_fallback') {
+                        badge.textContent = '⚠ Safe Fallback';
+                        badge.className = 'source-badge fallback';
+                    } else if (data.source === 'blocked_input_fallback' || data.source === 'error_fallback') {
+                        badge.textContent = '⚠ Safety Fallback';
+                        badge.className = 'source-badge fallback';
+                    } else if (data.source === 'local_huggingface') {
+                        // Backward-compatibility with older backend responses.
                         badge.textContent = '🖥 Local Model';
                         badge.className = 'source-badge local';
                     } else {
-                        badge.textContent = '⚠ Template Fallback';
+                        badge.textContent = '⚠ Fallback';
                         badge.className = 'source-badge fallback';
                     }
 

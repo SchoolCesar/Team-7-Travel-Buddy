@@ -45,6 +45,7 @@ PyYAML==6.0.3
 regex==2026.2.28
 requests @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_3c5r_7_lxu/croot/requests_1750426340266/work
 rich==14.3.3
+scikit-learn==1.7.2
 safetensors==0.7.0
 shellingham==1.5.4
 six @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_2e3n1z57yz/croot/six_1744271514562/work

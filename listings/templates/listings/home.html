@@ -320,8 +320,8 @@
     <div class="feature-card">
         <div class="feature-icon">🤖</div>
         <h3>AI Listing Generator</h3>
-        <p>Describe your service in a sentence. A local AI model writes your full listing — no API cost, runs on device.</p>
-        <span class="feature-tag">flan-t5-small</span>
+        <p>Describe your service in a sentence. A local semantic retrieval engine writes your full listing with no API cost.</p>
+        <span class="feature-tag">TF-IDF + Rule Engine</span>
     </div>
     <div class="feature-card">
         <div class="feature-icon">🔍</div>
@@ -341,7 +341,7 @@
 {% else %}
 <div class="cta-section">
     <h2>Try the AI listing generator</h2>
-    <p>Fill in a few details and let the on-device model write your description for you.</p>
+    <p>Fill in a few details and let the local semantic engine write your description for you.</p>
     <a href="{% url 'create_local_ai' %}" class="btn-white">Open AI Creator →</a>
 </div>
 {% endif %}
