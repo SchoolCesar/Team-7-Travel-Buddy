@@ -431,7 +431,7 @@ def signup_view(request):
     else:
         form = UserCreationForm()
 
-    return render(request, "registration/signup.html", {"form": form})
+    return render(request, "account/signup.html", {"form": form})
 # ===== LOCAL DESCRIPTION ENGINE =====
 from .ai.local_llm import generate_listing_description
 

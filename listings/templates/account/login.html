@@ -7,7 +7,6 @@
 <div style="max-width: 500px; margin: 3rem auto;">
     <h2 style="text-align: center; margin-bottom: 2rem;">Welcome Back! 👋</h2>
 
-    <!-- Google OAuth Button -->
     <div style="margin-bottom: 2rem;">
         <a href="{% provider_login_url 'google' %}"
            style="display: flex; align-items: center; justify-content: center; gap: 1rem;
@@ -30,31 +29,34 @@
         </span>
     </div>
 
-    <!-- Django Login Form -->
     <div class="detail-card">
-        <h3>Login with Email</h3>
-        <form method="post">
+        <h3>Login</h3>
+        <form method="post" action="{% url 'account_login' %}">
             {% csrf_token %}
 
-            {% if form.errors %}
+            {% if form.non_field_errors %}
                 <div style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                    <strong>Error:</strong> Invalid username or password
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
                 </div>
             {% endif %}
 
-            <div style="margin-bottom: 1.5rem;">
-                <label for="{{ form.username.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                    Username
-                </label>
-                {{ form.username }}
-            </div>
+            {% for field in form %}
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                        {{ field.label }}
+                    </label>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label for="{{ form.password.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                    Password
-                </label>
-                {{ form.password }}
-            </div>
+                    {{ field }}
+
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p style="color: #ef4444; font-size: 0.85rem; margin-top: 0.3rem;">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endfor %}
 
             <button type="submit" style="width: 100%; margin-top: 1rem;">
                 Login
@@ -63,7 +65,7 @@
 
         <div style="text-align: center; margin-top: 1.5rem; color: var(--text-secondary);">
             Don't have an account?
-            <a href="{% url 'signup' %}" style="color: var(--primary); font-weight: 600;">Sign up</a>
+            <a href="{% url 'account_signup' %}" style="color: var(--primary); font-weight: 600;">Sign up</a>
         </div>
     </div>
 </div>

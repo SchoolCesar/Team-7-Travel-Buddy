@@ -1,20 +1,20 @@
 annotated-doc==0.0.4
 anyio==4.12.1
-asgiref @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_d2wfxoqk8w/croot/asgiref_1724072473040/work
+asgiref
 bleach==6.3.0
-Brotli @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_d7pp3g74_g/croot/brotli-split_1736182638718/work
-brotlicffi @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_05qpoetyrv/croot/brotlicffi_1736182869800/work
-certifi @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_541lf40aku/croot/certifi_1754570641531/work/certifi
-cffi @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_51d1gdg4kr/croot/cffi_1736183297412/work
-charset-normalizer @ file:///croot/charset-normalizer_1721748349566/work
+Brotli
+brotlicffi
+certifi
+cffi
+charset-normalizer
 click==8.3.1
-contourpy @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_6236u4rf19/croot/contourpy_1732540057596/work
-cryptography @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_c6xgxzladj/croot/cryptography_1753084589802/work
-cycler @ file:///tmp/build/80754af9/cycler_1637851556182/work
-Django @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_e0gm4q6gof/croot/django_1745263591633/work
+contourpy
+cryptography
+cycler
+Django
 django-allauth==65.14.3
 filelock==3.25.0
-fonttools @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_706ove9ndu/croot/fonttools_1737039799828/work
+fonttools
 fsspec==2026.2.0
 gunicorn==23.0.0
 h11==0.16.0
@@ -22,43 +22,43 @@ hf-xet==1.3.2
 httpcore==1.0.9
 httpx==0.28.1
 huggingface_hub==1.6.0
-idna @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_2b_jn555_n/croot/idna_1714398852258/work
+idna
 Jinja2==3.1.6
-kiwisolver @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_92lgswl3y6/croot/kiwisolver_1737040154211/work
+kiwisolver
 markdown-it-py==4.0.0
 MarkupSafe==3.0.3
 matplotlib==3.10.0
 mdurl==0.1.2
 mpmath==1.3.0
 networkx==3.6.1
-numpy @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_5fmmnmaopm/croot/numpy_and_numpy_base_1725470312793/work/dist/numpy-2.0.1-cp311-cp311-macosx_10_15_x86_64.whl#sha256=45ddc380dceafef34c2e56116d236aaf1c6abe1758bb2ec520a1837c569acb69
-packaging @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_95hd3yozva/croot/packaging_1753775365688/work
-pillow @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_59qe1phg3h/croot/pillow_1752524533185/work
-pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
+numpy
+packaging
+pillow
+pycparser
 Pygments==2.19.2
-PyJWT @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_e3flm2yt7s/croot/pyjwt_1736178900134/work
-pyparsing @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_32bhy1idl3/croot/pyparsing_1731445537860/work
-PySocks @ file:///Users/ec2-user/ci_py311/pysocks_1678315868424/work
-python-dateutil @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_efk5_uakg8/croot/python-dateutil_1716495742183/work
+PyJWT
+pyparsing
+PySocks
+python-dateutil
 python-decouple==3.8
 PyYAML==6.0.3
 regex==2026.2.28
-requests @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_3c5r_7_lxu/croot/requests_1750426340266/work
+requests
 rich==14.3.3
 scikit-learn==1.7.2
 safetensors==0.7.0
 shellingham==1.5.4
-six @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_2e3n1z57yz/croot/six_1744271514562/work
-sqlparse @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_delp7zl09t/croot/sqlparse_1734704454213/work
-sympy==1.14.0
+six
+sqlparse
+sympy>=1.13.1
 tokenizers==0.22.2
-torch==2.2.2
-tornado @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_53i9d3wys5/croot/tornado_1748956943199/work
+torch==2.6.0
+tornado
 tqdm==4.67.3
 transformers==5.3.0
 typer==0.24.1
 typing_extensions==4.15.0
-unicodedata2 @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_c9zunc70re/croot/unicodedata2_1736544422992/work
-urllib3 @ file:///private/var/folders/c_/qfmhj66j0tn016nkx_th4hxm0000gp/T/abs_f8xnjmnanx/croot/urllib3_1750775879857/work
+unicodedata2
+urllib3
 webencodings==0.5.1
 whitenoise==6.11.0

@@ -7,7 +7,6 @@
 <div style="max-width: 500px; margin: 3rem auto;">
     <h2 style="text-align: center; margin-bottom: 2rem;">Join Harbor! 🚀</h2>
 
-    <!-- Google OAuth Button -->
     <div style="margin-bottom: 2rem;">
         <a href="{% provider_login_url 'google' %}"
            style="display: flex; align-items: center; justify-content: center; gap: 1rem;
@@ -30,60 +29,41 @@
         </span>
     </div>
 
-    <!-- Django Signup Form -->
     <div class="detail-card">
         <h3>Create Account</h3>
         <form method="post">
             {% csrf_token %}
 
-            {% if form.errors %}
+            {% if form.non_field_errors %}
                 <div style="background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                    <strong>Errors:</strong>
-                    <ul style="margin: 0.5rem 0 0 1.5rem;">
-                        {% for field, errors in form.errors.items %}
-                            {% for error in errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        {% endfor %}
-                    </ul>
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
                 </div>
             {% endif %}
 
-            <div style="margin-bottom: 1.5rem;">
-                <label for="{{ form.username.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                    Username
-                </label>
-                {{ form.username }}
-                {% if form.username.help_text %}
-                    <small style="color: var(--text-secondary); font-size: 0.85rem;">{{ form.username.help_text }}</small>
-                {% endif %}
-            </div>
+            {% for field in form %}
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="{{ field.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
+                        {{ field.label }}
+                    </label>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label for="{{ form.email.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                    Email
-                </label>
-                {{ form.email }}
-            </div>
+                    {# Render the input field itself #}
+                    {{ field }}
 
-            <div style="margin-bottom: 1.5rem;">
-                <label for="{{ form.password1.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                    Password
-                </label>
-                {{ form.password1 }}
-                {% if form.password1.help_text %}
-                    <small style="color: var(--text-secondary); font-size: 0.85rem; display: block; margin-top: 0.3rem;">
-                        {{ form.password1.help_text }}
-                    </small>
-                {% endif %}
-            </div>
+                    {% if field.help_text %}
+                        <small style="color: var(--text-secondary); font-size: 0.85rem; display: block; margin-top: 0.3rem;">
+                            {{ field.help_text|safe }}
+                        </small>
+                    {% endif %}
 
-            <div style="margin-bottom: 1.5rem;">
-                <label for="{{ form.password2.id_for_label }}" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">
-                    Confirm Password
-                </label>
-                {{ form.password2 }}
-            </div>
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                            <p style="color: #ef4444; font-size: 0.85rem; margin-top: 0.3rem;">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endfor %}
 
             <button type="submit" style="width: 100%; margin-top: 1rem;">
                 Create Account
@@ -92,7 +72,7 @@
 
         <div style="text-align: center; margin-top: 1.5rem; color: var(--text-secondary);">
             Already have an account?
-            <a href="{% url 'login' %}" style="color: var(--primary); font-weight: 600;">Login</a>
+            <a href="{% url 'account_login' %}" style="color: var(--primary); font-weight: 600;">Login</a>
         </div>
     </div>
 </div>
