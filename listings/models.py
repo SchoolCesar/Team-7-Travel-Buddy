@@ -1,214 +1,236 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.core.validators import EmailValidator
 
-class Student(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    university_email = models.EmailField(
-        unique=True,
-        validators=[EmailValidator()],
-        help_text="Must be a valid .edu email address"
-    )
-    phone_number = models.CharField(max_length=15, blank=True)
+class User(AbstractUser):
+    email = models.EmailField(unique=True)
+
     bio = models.TextField(max_length=500, blank=True)
+    avatar = models.URLField(blank=True)
+
     is_verified = models.BooleanField(default=False)
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    class Meta:
-        ordering = ['-created_at']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['university_email'],
-                name='unique_student_email'
-            )
-        ]
-    def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.university_email})"
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name} ({self.university_email})"
+        return self.email
 
-    def get_absolute_url(self):
-        from django.urls import reverse
-        return reverse('student_detail', args=[str(self.id)])
 
-class Category(models.Model):
-    CATEGORY_TYPES = [
-        ('SERVICE', 'Service'),
-        ('FUNDRAISER', 'Fundraiser'),
-        ('SELLER', 'Seller'),
-    ]
-    name = models.CharField(max_length=100)
-    category_type = models.CharField(max_length=20, choices=CATEGORY_TYPES)
-    description = models.TextField(max_length=300, blank=True)
-    class Meta:
-        ordering = ['name']
-        verbose_name_plural = 'Categories'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['name', 'category_type'],
-                name='unique_category_name_per_type'
-            )
-        ]
-    def __str__(self):
-        return f"{self.name} ({self.category_type})"
+class Location(models.Model):
+    country = models.CharField(max_length=100)
+    city = models.CharField(max_length=100)
+    place_name = models.CharField(max_length=200, blank=True)
+
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.name} ({self.category_type})"
+        return f"{self.city}, {self.country}"
 
-    def get_absolute_url(self):
-        from django.urls import reverse
-        return reverse('category_detail', args=[str(self.id)])
+    @property
+    def display_name(self) -> str:
+        if self.place_name:
+            return f"{self.place_name}, {self.city}, {self.country}"
+        return f"{self.city}, {self.country}"
 
-class Listing(models.Model):
-    PAYMENT_METHODS = [
-        ('VENMO', 'Venmo'),
-        ('CASH', 'Cash'),
-        ('PAYPAL', 'PayPal'),
-        ('ZELLE', 'Zelle'),
-    ]
-    seller = models.ForeignKey(
-        Student,
+class TravelPlan(models.Model):
+    user = models.ForeignKey(
+        User,
         on_delete=models.CASCADE,
-        related_name='listings'
+        related_name="travel_plans"
     )
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.PROTECT,
-        related_name='listings'
-    )
+
     title = models.CharField(max_length=200)
-    description = models.TextField(max_length=1000)
-    price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        help_text="Price in USD (leave blank for free/donations)"
+    description = models.TextField(blank=True)
+
+    destination = models.ForeignKey(
+        Location,
+        on_delete=models.CASCADE,
+        related_name="travel_plans"
     )
-    contact_method = models.CharField(max_length=200)
-    accepted_payment = models.CharField(
+
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    budget_min = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    budget_max = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    group_size = models.PositiveIntegerField(default=1)  # 想要几个人一起
+    flexibility = models.CharField(
         max_length=20,
-        choices=PAYMENT_METHODS,
-        default='VENMO'
+        choices=[
+            ("LOW", "Low"),
+            ("MEDIUM", "Medium"),
+            ("HIGH", "High"),
+        ],
+        default="MEDIUM"
     )
-    is_active = models.BooleanField(default=True)
+
+    is_open = models.BooleanField(default=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+
     class Meta:
-        ordering = ['-created_at']
-        constraints = [
-            models.UniqueConstraint(
-                fields=['seller', 'title'],
-                name='unique_listing_per_seller'
-            )
-        ]
-    def __str__(self):
-        return f"{self.title} by {self.seller.first_name}"
+        ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.title} by {self.seller.first_name}"
+        return f"{self.title} - {self.destination}"
 
-    def get_absolute_url(self):
-        from django.urls import reverse
-        return reverse('listing_detail', args=[str(self.id)])
+    @property
+    def duration_days(self) -> int:
+        return max(1, (self.end_date - self.start_date).days)
+
+    @property
+    def price(self):
+        return self.budget_max or self.budget_min
+
+    @property
+    def seller(self):
+        return self.user
+
+    @property
+    def category(self):
+        preference = getattr(self.user, "preference", None)
+        return getattr(preference, "get_travel_style_display", lambda: "Travel")()
+
+    def get_absolute_url(self) -> str:
+        return f"/trips/{self.pk}/"
+
+    def to_ai_payload(self) -> dict:
+        preference = getattr(self.user, "preference", None)
+        return {
+            "id": self.pk,
+            "title": self.title,
+            "description": self.description,
+            "destination": self.destination.display_name,
+            "start_date": self.start_date.isoformat(),
+            "end_date": self.end_date.isoformat(),
+            "duration_days": self.duration_days,
+            "budget_min": float(self.budget_min) if self.budget_min is not None else None,
+            "budget_max": float(self.budget_max) if self.budget_max is not None else None,
+            "group_size": self.group_size,
+            "flexibility": self.flexibility,
+            "travel_style": getattr(preference, "travel_style", "RELAX").lower(),
+            "interests": getattr(preference, "interests", ""),
+            "user_id": self.user_id,
+            "username": self.user.username,
+        }
+
+
+class TravelPreference(models.Model):
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="preference"
+    )
+
+    interests = models.CharField(max_length=300, blank=True)  # food, hiking, museum...
+
+    travel_style = models.CharField(
+        max_length=50,
+        choices=[
+            ("RELAX", "Relaxed"),
+            ("ADVENTURE", "Adventure"),
+            ("BUDGET", "Budget"),
+            ("LUXURY", "Luxury"),
+        ],
+        default="RELAX"
+    )
+
+    preferred_group_size = models.PositiveIntegerField(default=2)
+
+    max_distance_km = models.PositiveIntegerField(default=100)
+
+    def __str__(self):
+        return f"{self.user.email} preference"
+
+
+class BuddyRequest(models.Model):
+    from_user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="sent_requests"
+    )
+
+    travel_plan = models.ForeignKey(
+        TravelPlan,
+        on_delete=models.CASCADE,
+        related_name="buddy_requests"
+    )
+
+    message = models.TextField(blank=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ("PENDING", "Pending"),
+            ("ACCEPTED", "Accepted"),
+            ("REJECTED", "Rejected"),
+        ],
+        default="PENDING"
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.from_user} -> {self.travel_plan}"
+
+class Match(models.Model):
+    travel_plan = models.ForeignKey(
+        TravelPlan,
+        on_delete=models.CASCADE,
+        related_name="matches"
+    )
+
+    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="match_user1")
+    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="match_user2")
+
+    score = models.FloatField(default=0.0)  # matching score
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("travel_plan", "user1", "user2")
+
+    def __str__(self):
+        return f"{self.user1} & {self.user2}"
 
 class Conversation(models.Model):
-   student1 = models.ForeignKey(
-       Student,
-       on_delete=models.CASCADE,
-       related_name='conversations_started'
-   )
-   student2 = models.ForeignKey(
-       Student,
-       on_delete=models.CASCADE,
-       related_name='conversations_received'
-   )
-   listing = models.ForeignKey(
-       Listing,
-       on_delete=models.SET_NULL,
-       null=True,
-       blank=True
-   )
-   last_message_at = models.DateTimeField(null=True, blank=True)
-   created_at = models.DateTimeField(auto_now_add=True)
+    user1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="conv1")
+    user2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name="conv2")
 
+    travel_plan = models.ForeignKey(
+        TravelPlan,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
 
-   def __str__(self):
-       return f"Conversation between {self.student1} and {self.student2}"
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def updated_at(self):
+        latest_message = self.messages.order_by("-created_at").first()
+        return latest_message.created_at if latest_message else self.created_at
 
 
 class Message(models.Model):
-   conversation = models.ForeignKey(
-       Conversation,
-       on_delete=models.CASCADE,
-       related_name='messages'
-   )
-   sender = models.ForeignKey(
-       Student,
-       on_delete=models.CASCADE,
-       related_name='sent_messages'
-   )
-   receiver = models.ForeignKey(
-       Student,
-       on_delete=models.CASCADE,
-       related_name='received_messages'
-   )
-   message_text = models.TextField()
-   is_read = models.BooleanField(default=False)
-   created_at = models.DateTimeField(auto_now_add=True)
+    conversation = models.ForeignKey(
+        Conversation,
+        on_delete=models.CASCADE,
+        related_name="messages"
+    )
 
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
 
-   def __str__(self):
-       return f"Message from {self.sender}"
+    is_read = models.BooleanField(default=False)
 
+    created_at = models.DateTimeField(auto_now_add=True)
 
-class ServiceRequest(models.Model):
-   requester = models.ForeignKey(
-       Student,
-       on_delete=models.CASCADE,
-       related_name='service_requests'
-   )
-   category = models.ForeignKey(
-       Category,
-       on_delete=models.PROTECT
-   )
-   title = models.CharField(max_length=200)
-   description = models.TextField()
-   budget = models.DecimalField(
-       max_digits=10,
-       decimal_places=2,
-       null=True,
-       blank=True
-   )
-   preferred_contact = models.CharField(max_length=200)
-   is_fulfilled = models.BooleanField(default=False)
-   created_at = models.DateTimeField(auto_now_add=True)
-
-
-   def __str__(self):
-       return self.title
-
-
-class Review(models.Model):
-   reviewer = models.ForeignKey(
-       Student,
-       on_delete=models.CASCADE,
-       related_name='reviews_given'
-   )
-   reviewed_student = models.ForeignKey(
-       Student,
-       on_delete=models.CASCADE,
-       related_name='reviews_received'
-   )
-   listing = models.ForeignKey(
-       Listing,
-       on_delete=models.CASCADE
-   )
-   rating = models.PositiveSmallIntegerField()
-   review_text = models.TextField(blank=True)
-   created_at = models.DateTimeField(auto_now_add=True)
-
-
-   def __str__(self):
-       return f"Review by {self.reviewer}"
+    @property
+    def body(self):
+        return self.content
