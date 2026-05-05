@@ -3,7 +3,7 @@ services:
     name: harbor-marketplace
     env: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn Harbor.wsgi:application"
+    startCommand: "gunicorn TravelBuddy.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0

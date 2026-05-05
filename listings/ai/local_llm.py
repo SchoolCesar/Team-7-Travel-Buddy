@@ -1,5 +1,5 @@
 """
-Local description generation entrypoint for Harbor.
+Local description generation entrypoint for TravelBuddy.
 
 Compatibility note:
 - The view currently imports `generate_listing_description` from this module.

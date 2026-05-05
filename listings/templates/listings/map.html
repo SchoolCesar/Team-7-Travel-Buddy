@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Trip Map — Travel Buddy{% endblock %}
+
+{% block extra_css %}
+<style>
+  #map-container {
+    height: 520px;
+    border-radius: 12px;
+    background: #e8f0fe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #94a3b8;
+    position: relative;
+    overflow: hidden;
+  }
+  .trip-dot {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #2563eb;
+    border: 2px solid white;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .trip-dot:hover { transform: scale(1.5); }
+  .trip-popup {
+    position: absolute;
+    background: white;
+    border-radius: 8px;
+    padding: 10px 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    min-width: 180px;
+    display: none;
+    z-index: 10;
+    font-size: 0.875rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2><i class="bi bi-map me-2"></i>Trip Map</h2>
+  <a href="{% url 'trip_create' %}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-circle me-1"></i>Post a Trip
+  </a>
+</div>
+
+<div class="card shadow-sm mb-4">
+  <div class="card-body p-2">
+    <div id="map-container">
+      <p class="text-muted text-center">
+        <i class="bi bi-map display-4 d-block mb-2"></i>
+        Interactive map coming soon.<br>
+        <small>Trip pins will appear here once geo-coordinates are added to postings.</small>
+      </p>
+      <!-- Trip popup (shown on dot click) -->
+      <div class="trip-popup" id="trip-popup">
+        <strong id="popup-title"></strong>
+        <div id="popup-price" class="text-muted small"></div>
+        <a id="popup-link" href="#" class="btn btn-primary btn-sm mt-2 w-100">View Trip</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Trip list below map -->
+<h5 class="mb-3">All Active Trips <span class="badge bg-secondary">{{ trips_count }}</span></h5>
+<div class="row row-cols-1 row-cols-md-3 g-3">
+  {% for trip in trips %}
+    <div class="col">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h6 class="card-title">{{ trip.title }}</h6>
+          <span class="badge bg-primary mb-1">{{ trip.category }}</span>
+          <p class="card-text text-muted small">Posted by {{ trip.seller }}</p>
+          <p class="fw-bold">${{ trip.price|default:"Free" }}</p>
+        </div>
+        <div class="card-footer bg-transparent">
+          <a href="/trips/{{ trip.id }}/" class="btn btn-outline-primary btn-sm w-100">View Details</a>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <p class="text-muted">No trips posted yet. <a href="{% url 'trip_create' %}">Be the first!</a></p>
+    </div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Trip data from Django view
+  const trips = {{ trips_json|safe }};
+</script>
+{% endblock %}

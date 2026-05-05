@@ -1,7 +1,7 @@
 import os
 import django
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Harbor.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'TravelBuddy.settings')
 django.setup()
 
 from listings.models import Student, Category, Listing

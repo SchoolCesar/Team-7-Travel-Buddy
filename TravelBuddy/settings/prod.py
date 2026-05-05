@@ -11,7 +11,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
 ]
 
-# Add any additional ALLOWED_HOSTS from env
+# Add any additional ALLOWED_HOSTS from .env
 additional_hosts = config('ALLOWED_HOSTS', default='')
 if additional_hosts:
     ALLOWED_HOSTS.extend(additional_hosts.split(','))

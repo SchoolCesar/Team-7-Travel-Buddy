@@ -8,7 +8,7 @@ __pycache__/
 
 # Django
 *.log
-# db.sqlite3  ← COMMENTED OUT - we need to commit this!
+db.sqlite3
 db.sqlite3-journal
 /media
 /staticfiles/  # ← ADDED - don't commit collected static files
@@ -16,10 +16,10 @@ db.sqlite3-journal
 # Environment
 .env
 venv/
+.venv/
 myenv/
 myenv-django/
-ENV/
-env/
+.env/
 
 # IDE
 .vscode/
