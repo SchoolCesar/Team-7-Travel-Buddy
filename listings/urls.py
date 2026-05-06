@@ -22,4 +22,8 @@ urlpatterns = [
 
     # API
     path('api/trips/', views.trip_api_list, name='api_trips'),
+
+    #API for assignment Member 3: The Data & API Developer
+    path('api/harbor-stats/', views.harbor_stats),
+    path('dashboard/', views.harbor_dashboard),
 ]

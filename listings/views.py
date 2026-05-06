@@ -8,9 +8,9 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, Sum, Count, Avg
 
-from .models import Listing, Conversation, Message, Review, Student  # adjust if your model names differ
+from .models import Listing, Conversation, Message, Review, Student, Ship  # adjust if your model names differ
 from .forms import ListingForm
 
 User = get_user_model()
@@ -195,3 +195,34 @@ def trip_api_list(request):
     ))
     return JsonResponse({'trips': trips})
 
+#Below this is the code for Member 3: The Data & API Developer
+#this is the .aggregate() to calculate things with the test data
+
+def harbor_stats(request):
+    total_cargo = Ship.objects.aggregate(total=Sum('cargo_weight'))
+    total_ships = Ship.objects.count()
+    avg_cargo = Ship.objects.aggregate(avg=Avg('cargo_weight'))
+
+    ships_by_country = (
+        Ship.objects.values('country')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+
+    ships_per_harbor = (
+        Ship.objects.values('harbor__name')
+        .annotate(count=Count('id'))
+    )
+
+    data = {
+        "total_cargo_weight": total_cargo['total'] or 0,
+        "total_ships": total_ships,
+        "average_cargo_weight": avg_cargo['avg'] or 0,
+        "ships_by_country": list(ships_by_country),
+        "ships_per_harbor": list(ships_per_harbor),
+    }
+
+    return JsonResponse(data)
+
+def harbor_dashboard(request):
+    return render(request, 'listings/dashboard.html')

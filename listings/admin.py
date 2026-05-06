@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Student, Listing, Conversation, Message, Review
+from .models import Student, Listing, Conversation, Message, Review, Harbor, Ship
 
 
 @admin.register(Student)
@@ -33,3 +33,17 @@ class ReviewAdmin(admin.ModelAdmin):
        list_filter = ['rating']
 
 
+#Below this is the code for Member 3: The Data & API Developer
+#I added Harbor and Ship to admin which you can find with this url http://127.0.0.1:8000/admin/
+#these are also temporary until we pick exact data to use
+
+@admin.register(Harbor)
+class HarborAdmin(admin.ModelAdmin):
+    list_display = ['name', 'location']
+
+
+@admin.register(Ship)
+class ShipAdmin(admin.ModelAdmin):
+    list_display = ['name', 'country', 'cargo_weight', 'harbor']
+    list_filter = ['country', 'harbor']
+    search_fields = ['name', 'country']

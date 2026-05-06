@@ -168,3 +168,25 @@ class Review(models.Model):
 
     def __str__(self):
         return f"Review by {self.reviewer}"
+
+#Below this is the code for Member 3: The Data & API Developer
+#I created Harbor and Ship methods
+#These methods are just temporary for right now until we decide what specific data to run
+
+class Harbor(models.Model):
+    name = models.CharField(max_length=100)
+    location = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+class Ship(models.Model):
+    name = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
+    cargo_weight = models.FloatField()
+    arrival_date = models.DateField()
+
+    harbor = models.ForeignKey(Harbor, on_delete=models.CASCADE, related_name='ships')
+
+    def __str__(self):
+        return self.name
