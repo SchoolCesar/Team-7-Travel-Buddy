@@ -3,14 +3,344 @@
 {% block title %}Post a Trip | Travel Buddy{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Post a Trip</h1>
+<style>
+  .trip-ai-shell {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .trip-ai-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 1.5rem;
+  }
+  @media (max-width: 900px) {
+    .trip-ai-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .trip-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 1.25rem;
+    box-shadow: 0 8px 30px rgba(15, 23, 42, 0.05);
+  }
+  .trip-label {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+  .trip-hero {
+    margin-bottom: 1rem;
+  }
+  .trip-hero h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  .trip-hero p {
+    color: #475569;
+    max-width: 720px;
+  }
+  .trip-textarea {
+    width: 100%;
+    min-height: 180px;
+    border-radius: 14px;
+    border: 1px solid #cbd5e1;
+    padding: 1rem;
+    font-size: 1rem;
+    resize: vertical;
+  }
+  .trip-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+  .trip-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 0.85rem 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .trip-btn-primary {
+    background: #0f766e;
+    color: white;
+  }
+  .trip-btn-secondary {
+    background: #e2e8f0;
+    color: #0f172a;
+  }
+  .trip-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+    margin-top: 1rem;
+  }
+  @media (max-width: 700px) {
+    .trip-meta-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .trip-field input,
+  .trip-field textarea {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    padding: 0.75rem 0.85rem;
+  }
+  .trip-field textarea {
+    min-height: 110px;
+  }
+  .trip-result {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 1rem;
+    white-space: pre-wrap;
+    line-height: 1.6;
+  }
+  .trip-pill {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 0.25rem 0.7rem;
+    background: #dcfce7;
+    color: #166534;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+  }
+  .trip-slot-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+  }
+  .trip-slot-item {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 0.75rem;
+  }
+  .trip-slot-item strong {
+    display: block;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-bottom: 0.2rem;
+  }
+  .trip-status {
+    color: #64748b;
+    font-size: 0.95rem;
+    margin-top: 0.8rem;
+  }
+  .trip-error {
+    color: #b91c1c;
+    margin-top: 0.75rem;
+    font-weight: 600;
+  }
+</style>
 
-<form method="post" class="card p-4">
-  {% csrf_token %}
+<div class="trip-ai-shell">
+  <div class="trip-hero">
+    <div class="trip-label">AI Trip Builder</div>
+    <h1>Post a Trip with AI</h1>
+    <p>Describe where you want to go, your dates, budget, and travel vibe. Travel Buddy will generate a trip draft, estimate costs, and prefill your listing.</p>
+  </div>
 
-  {{ form.as_p }}
+  <div class="trip-ai-grid">
+    <div class="trip-card">
+      <div class="trip-label">1. Describe Your Trip</div>
+      <textarea id="trip-request" class="trip-textarea" placeholder="Example: I want a 4 day budget trip to Tokyo from 2026-07-01 to 2026-07-05. I love food, anime, and late-night city walks. I want to find 1 or 2 travel buddies."></textarea>
 
-  <button type="submit" class="btn btn-primary">Post Trip</button>
-  <a href="{% url 'trip_browse' %}" class="btn btn-secondary mt-2">Cancel</a>
-</form>
+      <div class="trip-meta-grid">
+        <div class="trip-field">
+          <label class="trip-label" for="origin">Origin</label>
+          <input id="origin" placeholder="Chicago" />
+        </div>
+        <div class="trip-field">
+          <label class="trip-label" for="contact-method">Contact Method</label>
+          <input id="contact-method" value="{{ request.user.email }}" />
+        </div>
+      </div>
+
+      <div class="trip-actions">
+        <button type="button" class="trip-btn trip-btn-primary" id="generate-btn">Generate Trip with AI</button>
+        <a href="{% url 'trip_browse' %}" class="trip-btn trip-btn-secondary text-decoration-none">Cancel</a>
+      </div>
+
+      <div class="trip-status" id="status-text">The AI will create a day-by-day itinerary, estimate the budget, and extract destination and dates.</div>
+      <div class="trip-error" id="error-text"></div>
+    </div>
+
+    <div class="trip-card">
+      <div class="trip-label">2. Review AI Output</div>
+      <div id="source-pill" class="trip-pill" style="display:none;"></div>
+
+      <div class="trip-label">Extracted Trip Details</div>
+      <div class="trip-slot-list" id="slot-list">
+        <div class="trip-slot-item"><strong>Destination</strong><span id="slot-destination">Waiting for AI...</span></div>
+        <div class="trip-slot-item"><strong>Dates</strong><span id="slot-dates">Waiting for AI...</span></div>
+        <div class="trip-slot-item"><strong>Travel Style</strong><span id="slot-style">Waiting for AI...</span></div>
+        <div class="trip-slot-item"><strong>Interests</strong><span id="slot-interests">Waiting for AI...</span></div>
+      </div>
+
+      <div class="trip-label mt-4">Trip Title</div>
+      <div class="trip-field">
+        <input id="trip-title" placeholder="AI will suggest a title" />
+      </div>
+
+      <div class="trip-label mt-3">Trip Summary / Listing Description</div>
+      <div class="trip-field">
+        <textarea id="trip-description" placeholder="AI itinerary summary will appear here"></textarea>
+      </div>
+
+      <div class="trip-label mt-3">Estimated Cost</div>
+      <div id="cost-result" class="trip-result">No estimate yet.</div>
+    </div>
+  </div>
+
+  <div class="trip-card mt-4">
+    <div class="trip-label">3. Full Itinerary</div>
+    <div id="itinerary-result" class="trip-result">Generate a trip to see the itinerary.</div>
+
+    <div class="trip-actions mt-4">
+      <button type="button" class="trip-btn trip-btn-primary" id="save-btn" disabled>Save Trip</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const generateUrl = "{% url 'api_ai_generate_trip' %}";
+  const saveUrl = "{% url 'api_ai_save_trip' %}";
+  const csrfToken = "{{ csrf_token }}";
+
+  let latestBundle = null;
+
+  const statusText = document.getElementById("status-text");
+  const errorText = document.getElementById("error-text");
+  const sourcePill = document.getElementById("source-pill");
+  const generateBtn = document.getElementById("generate-btn");
+  const saveBtn = document.getElementById("save-btn");
+
+  document.getElementById("generate-btn").addEventListener("click", generateTrip);
+  document.getElementById("save-btn").addEventListener("click", saveTrip);
+
+  async function generateTrip() {
+    errorText.textContent = "";
+    saveBtn.disabled = true;
+
+    const prompt = document.getElementById("trip-request").value.trim();
+    const origin = document.getElementById("origin").value.trim();
+
+    if (!prompt) {
+      errorText.textContent = "Please describe the trip you want AI to generate.";
+      return;
+    }
+
+    generateBtn.disabled = true;
+    statusText.textContent = "Generating itinerary, extracting trip details, and estimating costs...";
+
+    const body = new URLSearchParams();
+    body.append("prompt", prompt);
+    body.append("origin", origin);
+    body.append("csrfmiddlewaretoken", csrfToken);
+
+    try {
+      const response = await fetch(generateUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: body.toString(),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "AI trip generation failed.");
+      }
+
+      latestBundle = data;
+      renderBundle(data);
+      saveBtn.disabled = false;
+      statusText.textContent = "AI draft ready. Review the trip and save it when you are happy with it.";
+    } catch (error) {
+      errorText.textContent = error.message;
+      statusText.textContent = "AI generation failed. Please update the request and try again.";
+    } finally {
+      generateBtn.disabled = false;
+    }
+  }
+
+  function renderBundle(data) {
+    const slots = data.slots || {};
+    const preview = data.trip_preview || {};
+
+    document.getElementById("slot-destination").textContent = slots.destination || "Unknown";
+    document.getElementById("slot-dates").textContent = formatDates(slots.start_date, slots.end_date);
+    document.getElementById("slot-style").textContent = slots.travel_style || "Unknown";
+    document.getElementById("slot-interests").textContent = slots.interests || "Unknown";
+
+    document.getElementById("trip-title").value = preview.title || "";
+    document.getElementById("trip-description").value = data.itinerary?.result || "";
+    document.getElementById("itinerary-result").textContent = data.itinerary?.result || "No itinerary returned.";
+    document.getElementById("cost-result").textContent = data.cost_estimate?.result || "No cost estimate returned.";
+
+    sourcePill.style.display = "inline-block";
+    sourcePill.textContent = `Source: ${data.primary_source || "unknown"}`;
+  }
+
+  async function saveTrip() {
+    if (!latestBundle) {
+      errorText.textContent = "Generate a trip before saving.";
+      return;
+    }
+
+    errorText.textContent = "";
+    saveBtn.disabled = true;
+    statusText.textContent = "Saving your trip...";
+
+    const body = new URLSearchParams();
+    body.append("prompt", document.getElementById("trip-request").value.trim());
+    body.append("origin", document.getElementById("origin").value.trim());
+    body.append("title", document.getElementById("trip-title").value.trim());
+    body.append("description", document.getElementById("trip-description").value.trim());
+    body.append("contact_method", document.getElementById("contact-method").value.trim());
+    body.append("csrfmiddlewaretoken", csrfToken);
+
+    try {
+      const response = await fetch(saveUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: body.toString(),
+      });
+
+      const data = await response.json();
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "Saving the AI trip failed.");
+      }
+
+      statusText.textContent = "Trip saved successfully. Redirecting...";
+      window.location.href = data.redirect_url;
+    } catch (error) {
+      errorText.textContent = error.message;
+      statusText.textContent = "Trip could not be saved.";
+      saveBtn.disabled = false;
+    }
+  }
+
+  function formatDates(startDate, endDate) {
+    if (startDate && endDate && startDate !== "unspecified" && endDate !== "unspecified") {
+      return `${startDate} to ${endDate}`;
+    }
+    if (startDate && startDate !== "unspecified") {
+      return `Starts ${startDate}`;
+    }
+    return "Dates not extracted";
+  }
+</script>
 {% endblock %}

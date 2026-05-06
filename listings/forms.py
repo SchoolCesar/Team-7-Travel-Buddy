@@ -11,16 +11,30 @@ class ListingForm(forms.ModelForm):
             'origin',
             'destination',
             'departure_date',
+            'return_date',
             'departure_time',
             'price',
             'seats_available',
+            'travel_style',
+            'interests',
+            'budget_currency',
+            'ai_raw_request',
+            'ai_itinerary',
+            'ai_cost_estimate',
+            'ai_source',
             'contact_method',
         ]
 
         widgets = {
             'departure_date': forms.DateInput(attrs={'type': 'date'}),
+            'return_date': forms.DateInput(attrs={'type': 'date'}),
             'departure_time': forms.TimeInput(attrs={'type': 'time'}),
             'description': forms.Textarea(attrs={'rows': 4}),
+            'interests': forms.Textarea(attrs={'rows': 2}),
+            'ai_raw_request': forms.HiddenInput(),
+            'ai_itinerary': forms.HiddenInput(),
+            'ai_cost_estimate': forms.HiddenInput(),
+            'ai_source': forms.HiddenInput(),
         }
 
     def clean_seats_available(self):

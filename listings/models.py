@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import EmailValidator, MinValueValidator, MaxValueValidator
 from django.urls import reverse
+from django.utils import timezone
 
 
 class Student(models.Model):
@@ -43,6 +44,7 @@ class Listing(models.Model):
     origin = models.CharField(max_length=100, blank=True)
     destination = models.CharField(max_length=100, blank=True)
     departure_date = models.DateField(null=True, blank=True)
+    return_date = models.DateField(null=True, blank=True)
     departure_time = models.TimeField(null=True, blank=True)
 
     price = models.DecimalField(
@@ -57,6 +59,13 @@ class Listing(models.Model):
         default=1,
         help_text="Number of available seats, spots, or tickets"
     )
+    travel_style = models.CharField(max_length=50, blank=True)
+    interests = models.CharField(max_length=300, blank=True)
+    budget_currency = models.CharField(max_length=10, default='USD', blank=True)
+    ai_raw_request = models.TextField(blank=True)
+    ai_itinerary = models.TextField(blank=True)
+    ai_cost_estimate = models.TextField(blank=True)
+    ai_source = models.CharField(max_length=50, blank=True)
     contact_method = models.CharField(
         max_length=200,
         help_text="Preferred contact method, such as email, phone, or in-app message")
@@ -78,6 +87,32 @@ class Listing(models.Model):
 
     def get_absolute_url(self):
         return reverse('listing_detail', args=[str(self.id)])
+
+    @property
+    def duration_days(self):
+        if self.departure_date and self.return_date:
+            return max(1, (self.return_date - self.departure_date).days)
+        return None
+
+    def to_ai_payload(self):
+        return {
+            'id': self.pk,
+            'title': self.title,
+            'description': self.description,
+            'origin': self.origin,
+            'destination': self.destination,
+            'start_date': self.departure_date.isoformat() if self.departure_date else None,
+            'end_date': self.return_date.isoformat() if self.return_date else None,
+            'duration_days': self.duration_days,
+            'budget': str(self.price) if self.price is not None else None,
+            'budget_currency': self.budget_currency or 'USD',
+            'interests': self.interests,
+            'travel_style': self.travel_style,
+            'group_size': self.seats_available,
+            'contact_method': self.contact_method,
+            'seller_id': self.seller_id,
+            'seller_name': str(self.seller),
+        }
 
 
 class Conversation(models.Model):
@@ -107,6 +142,10 @@ class Conversation(models.Model):
     def __str__(self):
         return f"Conversation between {self.student1} and {self.student2}"
 
+    @property
+    def updated_at(self):
+        return self.last_message_at or self.created_at
+
 
 class Message(models.Model):
    conversation = models.ForeignKey(
@@ -133,6 +172,10 @@ class Message(models.Model):
 
    def __str__(self):
        return f"Message from {self.sender}"
+
+   @property
+   def body(self):
+       return self.message_text
 
 
 class Review(models.Model):

@@ -22,6 +22,9 @@ urlpatterns = [
 
     # API
     path('api/trips/', views.trip_api_list, name='api_trips'),
+    path('api/ai/generate-trip/', views.ai_generate_trip, name='api_ai_generate_trip'),
+    path('api/ai/save-trip/', views.save_ai_trip, name='api_ai_save_trip'),
+    path('api/trips/<int:pk>/matches/', views.trip_match_api, name='api_trip_matches'),
 
     #API for assignment Member 3: The Data & API Developer
     path('api/harbor-stats/', views.harbor_stats),
