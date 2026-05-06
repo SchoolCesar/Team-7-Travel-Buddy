@@ -31,41 +31,10 @@ class Student(models.Model):
         return reverse('student_detail', args=[str(self.id)])
 
 
-class Category(models.Model):
-    CATEGORY_TYPES = [
-        ('TRIP', 'Trip'),
-        ('TICKET', 'Ticket'),
-    ]
-    name = models.CharField(max_length=100)
-    category_type = models.CharField(max_length=20, choices=CATEGORY_TYPES)
-    description = models.TextField(max_length=300, blank=True)
-
-    class Meta:
-        ordering = ['name']
-        verbose_name_plural = 'Categories'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['name', 'category_type'],
-                name='unique_category_name_per_type'
-            )
-        ]
-
-    def __str__(self):
-        return f"{self.name} ({self.category_type})"
-
-    def get_absolute_url(self):
-        return reverse('category_detail', args=[str(self.id)])
-
-
 class Listing(models.Model):
     seller = models.ForeignKey(
         Student,
         on_delete=models.CASCADE,
-        related_name='travel_listings'
-    )
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.PROTECT,
         related_name='travel_listings'
     )
     title = models.CharField(max_length=200)

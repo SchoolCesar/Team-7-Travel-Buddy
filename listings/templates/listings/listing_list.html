@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Trips | Travel Buddy{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Browse Trips</h1>
+
+<form method="get" action="{% url 'trip_search' %}" class="mb-4">
+  <div class="input-group">
+    <input
+      type="text"
+      name="q"
+      class="form-control"
+      placeholder="Search destinations, dates, or activities..."
+      value="{{ query }}"
+    >
+    <button class="btn btn-primary" type="submit">Search</button>
+  </div>
+</form>
+
+{% if listings %}
+  <div class="row">
+    {% for listing in listings %}
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ listing.title }}</h5>
+
+            <p class="card-text">
+              {{ listing.origin|default:"Start TBD" }} → {{ listing.destination|default:"Destination TBD" }}
+            </p>
+
+            <p class="card-text">
+              <strong>Date:</strong> {{ listing.departure_date|default:"TBD" }}
+            </p>
+
+            <p class="card-text">
+              <strong>Total Cost:</strong> ${{ listing.price|default:"Free" }}
+            </p>
+
+            <a href="{{ listing.get_absolute_url }}" class="btn btn-primary">
+              View Details
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>No trips posted yet.</p>
+{% endif %}
+{% endblock %}

@@ -10,7 +10,8 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 from django.db.models import Q
 
-from .models import Listing, Conversation, Message, Review   # adjust if your model names differ
+from .models import Listing, Conversation, Message, Review, Student  # adjust if your model names differ
+from .forms import ListingForm
 
 User = get_user_model()
 
@@ -34,6 +35,11 @@ def trip_browse(request):
             Q(title__icontains=query) | Q(description__icontains=query)
         )
     return render(request, 'listings/listing_list.html', {'listings': trips, 'query': query})
+
+
+def trip_detail(request, pk):
+    listing = get_object_or_404(Listing, pk=pk)
+    return render(request, 'listings/listing_detail.html', {'listing': listing})
 
 
 # ── Trip search (GET) ─────────────────────────────────────────────────────────
@@ -61,20 +67,19 @@ def map_view(request):
 @login_required
 def create_local_ai(request):
     """Create a new trip posting (stub – wire up your form/model here)."""
+    student = get_object_or_404(Student, university_email=request.user.email)
+
     if request.method == 'POST':
-        # TODO: replace with your TripForm once it exists
-        title = request.POST.get('title', '').strip()
-        description = request.POST.get('description', '').strip()
-        price = request.POST.get('price', 0)
-        if title:
-            Listing.objects.create(
-                title=title,
-                description=description,
-                price=price,
-                user=request.user,
-            )
+        form = ListingForm(request.POST)
+        if form.is_valid():
+            listing = form.save(commit=False)
+            listing.seller = student
+            listing.save()
             return redirect('trip_browse')
-    return render(request, 'listings/create_listing.html')
+    else:
+        form = ListingForm()
+
+    return render(request, 'listings/create_local_ai.html', {'form': form})
 
 
 # ── Messaging ────────────────────────────────────────────────────────────────
@@ -143,6 +148,16 @@ def my_profile_view(request):
     return render(request, 'listings/profile.html', {
         'my_trips': my_trips,
         'received_reviews': received_reviews,
+    })
+
+
+def student_detail(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    trips = Listing.objects.filter(seller=student).order_by('-created_at')
+
+    return render(request, 'listings/student_detail.html', {
+        'student': student,
+        'trips': trips,
     })
 
 #

@@ -6,6 +6,7 @@ urlpatterns = [
     # ─── Travel Buddy core routes ────────────────────────────────────────────
     path('', views.home, name='home'),
     path('trips/', views.trip_browse, name='trip_browse'),
+    path('trips/<int:pk>/', views.trip_detail, name='listing_detail'),
     path('trips/map/', views.map_view, name='trip_map'),
     path('trips/create/', views.create_local_ai, name='trip_create'),
     path('trips/search/', views.trip_search, name='trip_search'),
@@ -17,6 +18,7 @@ urlpatterns = [
 
     # Profile
     path('profile/', views.my_profile_view, name='my_profile'),
+    path('students/<int:pk>/', views.student_detail, name='student_detail'),
 
     # API
     path('api/trips/', views.trip_api_list, name='api_trips'),

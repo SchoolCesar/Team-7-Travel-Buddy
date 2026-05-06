@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{{ student.first_name }} {{ student.last_name }} | Travel Buddy{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="card-title mb-1">
+      {{ student.first_name }} {{ student.last_name }}
+    </h2>
+
+    <p class="text-muted mb-2">
+      {{ student.university_email }}
+    </p>
+
+    {% if student.is_verified %}
+      <span class="badge bg-success">Verified Student</span>
+    {% else %}
+      <span class="badge bg-secondary">Not Verified</span>
+    {% endif %}
+
+    {% if student.bio %}
+      <p class="mt-3">{{ student.bio }}</p>
+    {% endif %}
+  </div>
+</div>
+
+<h3 class="mb-3">Trips Posted</h3>
+
+{% if trips %}
+  <div class="row">
+    {% for trip in trips %}
+      <div class="col-md-4 mb-3">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{ trip.title }}</h5>
+
+            <p class="card-text">
+              {{ trip.origin|default:"Start TBD" }} → {{ trip.destination|default:"Destination TBD" }}
+            </p>
+
+            <p class="card-text">
+              <strong>Date:</strong> {{ trip.departure_date|default:"TBD" }}
+            </p>
+
+            <p class="card-text">
+              <strong>Total Cost:</strong> ${{ trip.price|default:"Free" }}
+            </p>
+
+            <a href="{{ trip.get_absolute_url }}" class="btn btn-primary">
+              View Trip
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>This student has not posted any trips yet.</p>
+{% endif %}
+
+<a href="{% url 'trip_browse' %}" class="btn btn-secondary mt-3">
+  ← Back to Trips
+</a>
+{% endblock %}
