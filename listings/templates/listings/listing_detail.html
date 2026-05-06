@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}{{ listing.title }} | Harbor{% endblock %}
+{% block title %}{{ listing.title }} | Travel Buddy{% endblock %}
 
 {% block content %}
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
             <h2 style="margin-bottom: 0.5rem;">{{ listing.title }}</h2>
-            <p style="color: var(--text-secondary);">Posted {{ listing.created_at|timesince }} ago</p>
+            <p class="text-muted">Posted {{ listing.created_at|timesince }} ago</p>
         </div>
         <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">
             ${{ listing.price|default:"Free" }}
@@ -15,25 +15,47 @@
 
     <div class="stats-card" style="margin-bottom: 2rem;">
         <div class="grid grid-2">
-            <div>
-                <strong style="color: white; display: block; margin-bottom: 0.5rem;">📂 Category</strong>
-                <a href="{{ listing.category.get_absolute_url }}" style="color: white; opacity: 0.9;">
-                    {{ listing.category.name }} ({{ listing.category.get_category_type_display }})
-                </a>
-            </div>
-            <div>
-                <strong style="color: white; display: block; margin-bottom: 0.5rem;">👤 Seller</strong>
-                <a href="{{ listing.seller.get_absolute_url }}" style="color: white; opacity: 0.9;">
-                    {{ listing.seller.first_name }} {{ listing.seller.last_name }}
-                </a>
-            </div>
-            <div>
-                <strong style="color: white; display: block; margin-bottom: 0.5rem;">💳 Payment</strong>
-                <span style="color: white; opacity: 0.9;">{{ listing.get_accepted_payment_display }}</span>
-            </div>
-            <div>
-                <strong style="color: white; display: block; margin-bottom: 0.5rem;">📞 Contact</strong>
-                <span style="color: white; opacity: 0.9;">{{ listing.contact_method }}</span>
+            <div class="card p-4 mb-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <strong>👤 Posted By</strong>
+                        <p>
+                            <a href="{{ listing.seller.get_absolute_url }}">
+                                {{ listing.seller.first_name }} {{ listing.seller.last_name }}
+                            </a>
+                        </p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <strong>📍 From</strong>
+                        <p>{{ listing.origin }}</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <strong>🏁 To</strong>
+                        <p>{{ listing.destination }}</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <strong>📅 Date</strong>
+                        <p>{{ listing.departure_date|default:"TBD" }}</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <strong>🕒 Time</strong>
+                        <p>{{ listing.departure_time|default:"TBD" }}</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <strong>🧳 Available Spots</strong>
+                        <p>{{ listing.seats_available }}</p>
+                    </div>
+
+                    <div class="col-md-6">
+                        <strong>📞 Contact</strong>
+                        <p>{{ listing.contact_method }}</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -44,6 +66,6 @@
     </div>
 
     <div style="margin-top: 2rem; text-align: center;">
-        <a href="{% url 'listing_list' %}" class="btn">← Back to All Listings</a>
+        <a href="{% url 'trip_browse' %}" class="btn">← Back to Trips</a>
     </div>
 {% endblock %}

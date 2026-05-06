@@ -20,6 +20,7 @@ urlpatterns = [
 
     # Profile
     path('profile/', views.my_profile_view, name='my_profile'),
+    path('students/<int:pk>/', views.student_detail, name='student_detail'),
 
     # API
     path('api/trips/', views.trip_api_list, name='api_trips'),

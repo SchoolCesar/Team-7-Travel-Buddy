@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <script>
+        fetch('/api/harbor-stats/')
+          .then(response => response.json())
+          .then(data => {
+            console.log(data);
+
+            document.getElementById("totalShips").innerText = data.total_ships;
+          });
+    </script>
+
+    <h2>Total Ships: <span id="totalShips"></span></h2>
+
+    {% block body %}
+    {% endblock %}
+{% endblock %}

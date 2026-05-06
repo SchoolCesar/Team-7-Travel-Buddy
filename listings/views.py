@@ -51,6 +51,11 @@ def trip_browse(request):
     return render(request, 'listings/listing_features.html', {'listings': trips, 'query': query, 'trips': trips})
 
 
+def trip_detail(request, pk):
+    listing = get_object_or_404(Listing, pk=pk)
+    return render(request, 'listings/listing_detail.html', {'listing': listing})
+
+
 # ── Trip search (GET) ─────────────────────────────────────────────────────────
 
 def trip_search(request):
@@ -193,6 +198,16 @@ def my_profile_view(request):
         'my_trips': my_trips,
         'received_reviews': [],
         'student': request.user,
+    })
+
+
+def student_detail(request, pk):
+    student = get_object_or_404(Student, pk=pk)
+    trips = Listing.objects.filter(seller=student).order_by('-created_at')
+
+    return render(request, 'listings/student_detail.html', {
+        'student': student,
+        'trips': trips,
     })
 
 #
