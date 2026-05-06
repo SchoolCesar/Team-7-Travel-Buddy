@@ -32,16 +32,6 @@ class MessageAdmin(admin.ModelAdmin):
    list_display = ['sender', 'receiver', 'created_at', 'is_read']
    list_filter = ['is_read']
 
-
-from .models import ServiceRequest
-
-
-@admin.register(ServiceRequest)
-class ServiceRequestAdmin(admin.ModelAdmin):
-   list_display = ['title', 'requester', 'category', 'is_fulfilled', 'created_at']
-   list_filter = ['category', 'is_fulfilled']
-
-
 from .models import Review
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
