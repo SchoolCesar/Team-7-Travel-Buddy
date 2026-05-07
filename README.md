@@ -1,14 +1,6 @@
-# Campus Marketplace - Harbor
+# Travel Buddy - Find your Perfect Travel Companion
 
-A student services platform for verified university students to advertise services, fundraisers, and items for sale.
-
-## Project Names
-
-- **Project Name**: Harbor
-  - Represents the overall marketplace platform for campus services
-  
-- **Feature 1 Name**: listings
-  - Core functionality revolves around creating and browsing listings
+A student travel service that allows students to post prospective travel plans and the option to connect with others to join them.
 
 ## Models
 
@@ -19,19 +11,88 @@ Represents verified university students. Email verification ensures campus safet
 - **Ordering**: Newest registrations first
 
 ### Category
-Organizes listings into Services, Fundraisers, or Sellers for easy filtering.
+Organizes listings by geography.
 
 - **Key Constraint**: Unique name per category type
 - **Ordering**: Alphabetical
 
 ### Listing
-Student-posted services, fundraisers, or items for sale.
+Student-posted potential travel plans.
 
 - **Key Relationships**:
   - ForeignKey to Student (CASCADE) - If student leaves, their listings should too
   - ForeignKey to Category (PROTECT) - Can't delete categories with active listings
 - **Key Constraint**: Student can't create duplicate listing titles
 - **Ordering**: Newest listings first
+
+
+## Dependencies
+
+annotated-doc==0.0.4
+anyio==4.12.1
+asgiref
+bleach==6.3.0
+Brotli
+brotlicffi
+certifi
+cffi
+charset-normalizer
+click==8.3.1
+contourpy
+cryptography
+cycler
+Django
+django-allauth==65.14.3
+filelock==3.25.0
+fonttools
+fsspec==2026.2.0
+gunicorn==23.0.0
+h11==0.16.0
+hf-xet==1.3.2
+httpcore==1.0.9
+httpx==0.28.1
+huggingface_hub==1.6.0
+idna
+Jinja2==3.1.6
+kiwisolver
+markdown-it-py==4.0.0
+MarkupSafe==3.0.3
+matplotlib==3.10.0
+mdurl==0.1.2
+mpmath==1.3.0
+networkx==3.6.1
+numpy
+packaging
+pillow
+pycparser
+Pygments==2.19.2
+PyJWT
+pyparsing
+PySocks
+python-dateutil
+python-decouple==3.8
+PyYAML==6.0.3
+regex==2026.2.28
+requests
+rich==14.3.3
+scikit-learn==1.7.2
+safetensors==0.7.0
+shellingham==1.5.4
+six
+sqlparse
+sympy>=1.13.1
+tokenizers==0.22.2
+torch==2.6.0
+tornado
+tqdm==4.67.3
+transformers==5.3.0
+typer==0.24.1
+typing_extensions==4.15.0
+unicodedata2
+urllib3
+webencodings==0.5.1
+whitenoise==6.11.0
+
 
 ## Setup Instructions
 
@@ -43,6 +104,7 @@ Student-posted services, fundraisers, or items for sale.
 
 3. Access admin: http://127.0.0.1:8000/admin/
 
+
 ## API Description
 This project provides a public API to allow external applications to access and filter listing data.
 
@@ -50,41 +112,11 @@ This project provides a public API to allow external applications to access and 
    - URL Path: /api/listings/
    - Method: GET
    - Format: JSON
-   - Filtering: This endpoint supports filtering via query parameters. You can filter by category name by adding "?cat=" to the url.
    - Data Fields Provided:
      - Title: name of the listing
-     - Price: cost of the items/services 
-     - Category: the name of the category the listing is filed under
-     - Seller: the first name of the student who posted the listing
-2. MIME Type Demonstration Endpoint: created to demonstrate and observe the differences in MIME types between standard HTTP responses and JSON responses.
-   - URL Path: /api/test/
-   - Default Behavior (Json Response): returns the data with a "Content-Type: application/json" header. 
-   - HTTP Override Behavior (HttpResponse): by adding "?type=http" to the URL, the view returns the data using HttpResponse
-## Section 3: Static Files & UI Styling
-	- Created Header and Footer Bar in navy blue 
-	- Changed hyperlinks for pages into neat tabs
-	- Made listings tabular in look as per the wireframe
+     - Price: cost of the travel 
+     - Category: the locations, start and end point
 
-## Deployment
+## AI Location
 
-**Live URL:** https://your-app-name.onrender.com
-**Deployed on:** Render.com (Free Tier)
-
-**Environment:**
-- Python 3.11
-- Django 5.2
-- Gunicorn WSGI server
-- WhiteNoise for static files
-- SQLite database
-
-**Deployment Process:**
-1. Code pushed to GitHub
-2. Render automatically builds and deploys
-3. Static files collected via WhiteNoise
-4. Migrations run automatically
-5. App served via Gunicorn
-
-**Environment Variables:**
-- DJANGO_ENV=prod
-- DEBUG=False
-- SECRET_KEY (auto-generated)
+To access the AI in this app you have to navigate to the "Post a Trip" link that is located at the top with the navbar
